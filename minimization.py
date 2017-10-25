@@ -20,7 +20,7 @@ def image_to_array(img):
 
     return data
 
-def arr_to_image(arr):
+def arr_to_image(a, fname):
     '''Saves image arr as image'''
     from scipy.misc import toimage
     #pillow does not work properly. Don't know why
@@ -37,7 +37,7 @@ def arr_to_image(arr):
     # img.show()
     # img.save("asdsadasd.jpeg")
     
-    toimage(arr).save("out.png") 
+    toimage(a).save(fname) 
     return 0
 
 def give_test_1d_image():
@@ -116,7 +116,7 @@ def give_neighbours(image, x, y):
             ns.append(image[y+b][x+a])
     return ns 
 
-def create_graph(image, alpha, beta):
+def create_graph(img_orig, image,  alpha, beta):
     '''Method creates special graph using adjacency matrix as representation.
        image: is the array in greyscale
        alpha: alpha label
@@ -145,11 +145,11 @@ def create_graph(image, alpha, beta):
         neighbours = give_neighbours(image, x_img, y_img)
         fil_neigh = list(filter(lambda i: i!=alpha and i!=beta, neighbours))
         t_weight = sum([V_p_q(alpha,v) for v in fil_neigh])
-        graph[i, 0] = D_p(alpha, image, x_img, y_img)+t_weight
+        graph[i, 0] = D_p(alpha, img_orig, x_img, y_img)+t_weight
         graph[0, i] = graph[i, 0]
         #from beta to all pixels
         t_weight = sum([V_p_q(beta,v) for v in fil_neigh])
-        graph[i, -1] = D_p(beta, image, x_img, y_img)+t_weight
+        graph[i, -1] = D_p(beta, img_orig, x_img, y_img)+t_weight
         graph[-1, i] = graph[i,-1]
 
     #neighbour have edges too
@@ -163,23 +163,24 @@ def create_graph(image, alpha, beta):
         
     return graph, map, revmap
 
-def alpha_beta_swap(alpha, beta, image):
+def alpha_beta_swap(alpha, beta, img_orig, img_work):
 
-    graph, map, revmap = create_graph(image, alpha, beta)
+    graph, map, revmap = create_graph(img_orig, img_work, alpha, beta)
     res = minimum_cut(graph, map, revmap)
     for i in range(0, len(res)):
         y,x = map[i+1] 
         if res[i] == 1:
-            image[y][x] = alpha
+            img_work[y][x] = alpha 
         else:
-            image[y][x] = beta
+            img_work[y][x] = beta
     
-    return image 
+    return img_work
 
 def main():
     
-    imagearr = image_to_array("../test1noise.png")
-    # imagearr = give_test_1d_image() 
+    img_orig = image_to_array("../testimages/noisy_80.png")
+    img_work = img_orig.copy() 
+    # img_orig = give_test_1d_image() 
     # graph, map, revmap = create_graph(arr, 5,6)
     # print(map)
     # print(graph)
@@ -189,15 +190,32 @@ def main():
 
     #find all labels
     labels = []
-    for i in range(0, len(imagearr)):
-        for j in range(0, len(imagearr[0])):
-            if imagearr[i][j] not in labels:
-                labels.append(imagearr[i][j])
+    for i in range(0, len(img_orig)):
+        for j in range(0, len(img_orig[0])):
+            if img_orig[i][j] not in labels:
+                labels.append(img_orig[i][j])
     
+    print(labels)
     #iterate over all pairs of labels 
-    for i in range(0, len(labels)-1):
-        for j in range(i+1, len(labels)):
-            imagearr = alpha_beta_swap(i,j, imagearr)         
-    arr_to_image(imagearr)
+    for u in range(0,4):
+        for i in range(0, len(labels)-1):
+            for j in range(i+1, len(labels)):
+                print(i,j)
+                img_work = alpha_beta_swap(i,j, img_orig, img_work)        
+    arr_to_image(img_work, "test_denoised.png")
     return 0 
-main()
+
+def opencv_denoise():
+    import numpy as np
+    import cv2
+    from matplotlib import pyplot as plt
+    
+    img = cv2.imread('../testimages/noisy_80.png')
+    
+    dst = cv2.fastNlMeansDenoisingColored(img,None,10,10,7,21)
+    
+    plt.subplot(121),plt.imshow(img)
+    plt.subplot(122),plt.imshow(dst)
+    plt.show()
+# main()
+opencv_denoise()
