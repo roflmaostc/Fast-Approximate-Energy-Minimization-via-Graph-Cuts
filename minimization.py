@@ -101,7 +101,7 @@ def minimum_cut(graph, map, revmap):
      
 def V_p_q(label1, label2):
     '''Definition of the potential'''
-    return abs(label1-label2)
+    return 3*abs(label1-label2)
     
     
 def D_p(label, graph, i, j):
@@ -227,13 +227,13 @@ def main():
         for i in range(0, len(labels)-1):
             for j in range(i+1, len(labels)):
                 # print(i,j)
-                img_work, dt = alpha_beta_swap(i,j, img_work, img_work, True)       
+                img_work, dt = alpha_beta_swap(i,j, img_orig, img_work, True)       
                 T += dt 
         print("original image ", calculate_energy(img_orig, img_orig))
         print("denoised image ", calculate_energy(img_orig, img_work)) 
 
     arr_to_image(img_orig, "test_original.png")
-    arr_to_image(img_work, "test_denoised.png")
+    arr_to_image(img_work, "test_denoised_dog2.png")
     print(T)
 
     # print(calculate_energy(image_to_array(img_name), img_work)) 
@@ -244,9 +244,9 @@ def calculate_energy(img_orig, img_work):
        img: is input array'''
 
     E_data = 0
-    for i in range(len(img_orig)):
-        for j in range(len(img_orig[0])):
-            E_data += D_p(img_orig[i][j], img_work, i, j)
+    # for i in range(len(img_orig)):
+    #     for j in range(len(img_orig[0])):
+    #         E_data += D_p(img_orig[i][j], img_work, i, j)
     
     E_smooth = 0
     for i in range(len(img_orig)):
