@@ -6,6 +6,23 @@ import maxflow as mf
 import numpy as np
 import time
 
+
+
+def opencv_denoise():
+    import numpy as np
+    import cv2
+    from matplotlib import pyplot as plt
+    
+    img = cv2.imread('../testimages/noisy_80.png')
+    
+    dst = cv2.fastNlMeansDenoisingColored(img,None,5,5,7,30)
+    
+    plt.subplot(121),plt.imshow(img)
+    plt.subplot(122),plt.imshow(dst)
+    plt.show()
+
+
+
 def image_to_array(img):
     '''input: path to image
        output: array of grayscale
@@ -42,7 +59,8 @@ def arr_to_image(a, fname):
 
 def give_test_1d_image():
     '''returns a 1x10 pixel image'''
-    return np.array([[5, 4, 6, 5, 5, 4, 4, 3, 4, 3]])#,\
+    return np.array([[5,5,5,2,7,7,4,7]])
+    # return np.array([[5, 4, 6, 5, 5, 4, 4, 3, 4, 3]])#,\
                      # [5, 5, 5, 5, 5, 2, 3, 2, 5, 5]])
     # return np.array([[5,5,3],[5,7,5]])
 
@@ -55,10 +73,10 @@ def graph_to_xdot(graph, map, revmap):
     out = "strict graph G{\nnode[color=white, style=filled];\n"
     #define terminal-nodes
     out += "\"alpha\"[color=red]\n "
-    out += "\"beta\"[color=red]\n "
     #define all the other nodes(pixels)
     for (y,x) in revmap:
         out += "\"x="+ str(x) + ";y=" + str(y)+ "\"[color=red]\n "
+    out += "\"beta\"[color=red]\n "
     #add all edges
     for (y,x) in revmap:
         for j in range(1,len(graph)-1):
@@ -73,6 +91,27 @@ def graph_to_xdot(graph, map, revmap):
 
     out += "}"
     return out
+
+
+
+def calculate_energy(img_orig, img_work):
+    '''Calculates Energy of image.
+       img: is input array'''
+
+    E_data = 0
+    # for i in range(len(img_orig)):
+    #     for j in range(len(img_orig[0])):
+    #         E_data += D_p(img_orig[i][j], img_work, i, j)
+    
+    E_smooth = 0
+    for i in range(len(img_orig)):
+        for j in range(len(img_orig[0])):
+            ns = give_neighbours(img_work, j, i)
+            E_smooth += sum([V_p_q(v, img_work[i][j]) for v in ns])
+
+    return E_data + E_smooth
+
+
 
 
 def minimum_cut(graph, map, revmap):
@@ -101,12 +140,13 @@ def minimum_cut(graph, map, revmap):
      
 def V_p_q(label1, label2):
     '''Definition of the potential'''
-    return 3*abs(label1-label2)
+    return 50*abs(label1-label2)
     
     
-def D_p(label, graph, i, j):
+def D_p(label, graph, x, y):
     '''Returns the quadratic difference between label and real intensity of pixel'''
-    return (label-graph[i][j])**2
+    # return (abs(label**2-graph[y][x]**2))**0.5
+    return (abs(label-graph[y][x]))**2
 
 
 def give_neighbours(image, x, y):
@@ -180,6 +220,7 @@ def alpha_beta_swap(alpha, beta, img_orig, img_work, time_measure=False):
        time_measure: flag if you want measure time'''
     #create graph for this alpha, beta
     graph, map, revmap = create_graph(img_orig, img_work, alpha, beta)
+    # print(map)
     if time_measure == True:
         start = time.time() 
         res = minimum_cut(graph, map, revmap)
@@ -202,16 +243,8 @@ def alpha_beta_swap(alpha, beta, img_orig, img_work, time_measure=False):
     else:
         return img_work
 
-def main():
-    import sys 
-    from random import shuffle
-    
-    #image 
-    img_name = sys.argv[1] 
-    img_orig = image_to_array(img_name)
-    img_work= image_to_array(img_name)
-    
 
+def swap_minimization(img_orig, img_work, cycles):
     #find all labels
     labels = []
     for i in range(0, len(img_orig)):
@@ -222,7 +255,7 @@ def main():
     print(labels) 
     T = 0
     #iterate over all pairs of labels 
-    for u in range(0,2):
+    for u in range(0,cycles):
         # shuffle(labels)
         for i in range(0, len(labels)-1):
             for j in range(i+1, len(labels)):
@@ -233,42 +266,24 @@ def main():
         print("denoised image ", calculate_energy(img_orig, img_work)) 
 
     arr_to_image(img_orig, "test_original.png")
-    arr_to_image(img_work, "test_denoised_dog2.png")
+    arr_to_image(img_work, "test_denoised.png")
     print(T)
+    return img_work
 
+def main():
+    import sys 
+    from random import shuffle
+    
+    #image 
+    img_name = sys.argv[1] 
+    img_orig = image_to_array(img_name)
+    img_work= image_to_array(img_name)
+    
+    swap_minimization(img_orig, img_work, 2) 
+    
     # print(calculate_energy(image_to_array(img_name), img_work)) 
     return 0 
 
-def calculate_energy(img_orig, img_work):
-    '''Calculates Energy of image.
-       img: is input array'''
-
-    E_data = 0
-    # for i in range(len(img_orig)):
-    #     for j in range(len(img_orig[0])):
-    #         E_data += D_p(img_orig[i][j], img_work, i, j)
-    
-    E_smooth = 0
-    for i in range(len(img_orig)):
-        for j in range(len(img_orig[0])):
-            ns = give_neighbours(img_work, j, i)
-            E_smooth += sum([V_p_q(v, img_work[i][j]) for v in ns])
-
-    return E_data + E_smooth
-
-
-def opencv_denoise():
-    import numpy as np
-    import cv2
-    from matplotlib import pyplot as plt
-    
-    img = cv2.imread('../testimages/noisy_80.png')
-    
-    dst = cv2.fastNlMeansDenoisingColored(img,None,5,5,7,30)
-    
-    plt.subplot(121),plt.imshow(img)
-    plt.subplot(122),plt.imshow(dst)
-    plt.show()
 
 main()
 # opencv_denoise()
