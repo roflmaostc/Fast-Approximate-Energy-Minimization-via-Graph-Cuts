@@ -72,11 +72,11 @@ def graph_to_xdot(graph, map, revmap):
     #define graph
     out = "strict graph G{\nnode[color=white, style=filled];\n"
     #define terminal-nodes
-    out += "\"alpha\"[color=red]\n "
+    out += "\"alpha\"[color=yellow]\n "
     #define all the other nodes(pixels)
     for (y,x) in revmap:
         out += "\"x="+ str(x) + ";y=" + str(y)+ "\"[color=red]\n "
-    out += "\"beta\"[color=red]\n "
+    out += "\"beta\"[color=green]\n "
     #add all edges
     for (y,x) in revmap:
         for j in range(1,len(graph)-1):
@@ -99,9 +99,9 @@ def calculate_energy(img_orig, img_work):
        img: is input array'''
 
     E_data = 0
-    # for i in range(len(img_orig)):
-    #     for j in range(len(img_orig[0])):
-    #         E_data += D_p(img_orig[i][j], img_work, i, j)
+    for i in range(len(img_orig)):
+        for j in range(len(img_orig[0])):
+            E_data += D_p(img_orig[i][j], img_work, j, i)
     
     E_smooth = 0
     for i in range(len(img_orig)):
@@ -140,13 +140,14 @@ def minimum_cut(graph, map, revmap):
      
 def V_p_q(label1, label2):
     '''Definition of the potential'''
-    return 50*abs(label1-label2)
+    return abs(label1-label2)
+    # return abs(label1-label2)
     
     
 def D_p(label, graph, x, y):
     '''Returns the quadratic difference between label and real intensity of pixel'''
-    # return (abs(label**2-graph[y][x]**2))**0.5
-    return (abs(label-graph[y][x]))**2
+    return (abs(label**2-graph[y][x]**2))**0.5
+    # return (abs(label-graph[y][x]))**2
 
 
 def give_neighbours(image, x, y):
@@ -220,6 +221,7 @@ def alpha_beta_swap(alpha, beta, img_orig, img_work, time_measure=False):
        time_measure: flag if you want measure time'''
     #create graph for this alpha, beta
     graph, map, revmap = create_graph(img_orig, img_work, alpha, beta)
+    
     # print(map)
     if time_measure == True:
         start = time.time() 
@@ -241,47 +243,70 @@ def alpha_beta_swap(alpha, beta, img_orig, img_work, time_measure=False):
     if time_measure == True:
         return img_work, end-start
     else:
-        return img_work
+        return img_work,0 
 
 
 def swap_minimization(img_orig, img_work, cycles):
-    #find all labels
+    '''This methods implements the energy minimization via alpha-beta-swaps
+       img_orig: is original input image
+       img_work: optimized image
+       cycles: how often to iterate over all labels'''
+
+    #find all labels of image
     labels = []
     for i in range(0, len(img_orig)):
         for j in range(0, len(img_orig[0])):
             if img_orig[i][j] not in labels:
                 labels.append(img_orig[i][j])
-    
-    print(labels) 
+     
     T = 0
-    #iterate over all pairs of labels 
+    #do iteration of all pairs a few times
     for u in range(0,cycles):
-        # shuffle(labels)
+        #iterate over all pairs of labels 
         for i in range(0, len(labels)-1):
             for j in range(i+1, len(labels)):
                 # print(i,j)
+                #computing intensive swapping and graph cutting part
                 img_work, dt = alpha_beta_swap(i,j, img_orig, img_work, True)       
-                T += dt 
-        print("original image ", calculate_energy(img_orig, img_orig))
-        print("denoised image ", calculate_energy(img_orig, img_work)) 
-
-    arr_to_image(img_orig, "test_original.png")
-    arr_to_image(img_work, "test_denoised.png")
-    print(T)
+                T += dt
+        #user output and interims result image
+        print("Energy after " + str(u+1) + "/" + str(cycles) + " cylces:", calculate_energy(img_orig, img_work)) 
+        arr_to_image(img_work, "output_"+str(u+1)+"_cycle"+".png") 
+    
+    # print(T)
     return img_work
 
 def main():
     import sys 
+    import os.path
     from random import shuffle
     
-    #image 
+    # if sys.argv[1] == None or sys.argv[2] == None:
+    if len(sys.argv)<3:
+        print("Usage:\t python minimization.py PATH/FILENAME NUMBER_OF_CYCLES")
+        print("\t NUMBER_OF_CYCLES is quite good if it is something between 1 and 10")
+        return -1
     img_name = sys.argv[1] 
+    cycles = int(sys.argv[2])
+    
+
+    if not os.path.isfile(img_name):
+        print('Please input a regular path to a file.')
+        return -1
+
+
+    #image  
     img_orig = image_to_array(img_name)
+    arr_to_image(img_orig, "input_image.png")
     img_work= image_to_array(img_name)
+   
+    if len(img_orig)>100 or len(img_orig[0])>100:
+        print("WARNING: images larger than 100x100 take probably a few minutes (or hours) to minimize.")
+        print("For testing smaller than 100x100 is good\n")
+    print("Energy input image:", calculate_energy(img_orig, img_work))
     
-    swap_minimization(img_orig, img_work, 2) 
+    swap_minimization(img_orig, img_work, cycles) 
     
-    # print(calculate_energy(image_to_array(img_name), img_work)) 
     return 0 
 
 
