@@ -5,6 +5,9 @@
 import maxflow as mf
 import numpy as np
 import time
+import sys 
+import os.path
+from random import shuffle
 
 
 
@@ -246,7 +249,7 @@ def alpha_beta_swap(alpha, beta, img_orig, img_work, time_measure=False):
         return img_work,0 
 
 
-def swap_minimization(img_orig, img_work, cycles):
+def swap_minimization(img_orig, img_work, cycles, output_name):
     '''This methods implements the energy minimization via alpha-beta-swaps
        img_orig: is original input image
        img_work: optimized image
@@ -262,6 +265,8 @@ def swap_minimization(img_orig, img_work, cycles):
     T = 0
     #do iteration of all pairs a few times
     for u in range(0,cycles):
+        #shuffle labels
+        shuffle(labels)
         #iterate over all pairs of labels 
         for i in range(0, len(labels)-1):
             for j in range(i+1, len(labels)):
@@ -271,15 +276,12 @@ def swap_minimization(img_orig, img_work, cycles):
                 T += dt
         #user output and interims result image
         print("Energy after " + str(u+1) + "/" + str(cycles) + " cylces:", calculate_energy(img_orig, img_work)) 
-        arr_to_image(img_work, "output_"+str(u+1)+"_cycle"+".png") 
+        arr_to_image(img_work, "denoised_"+output_name+"_"+str(u+1)+"_cycle"+".png") 
     
     # print(T)
     return img_work
 
 def main():
-    import sys 
-    import os.path
-    from random import shuffle
     
     # if sys.argv[1] == None or sys.argv[2] == None:
     if len(sys.argv)<3:
@@ -288,8 +290,8 @@ def main():
         return -1
     img_name = sys.argv[1] 
     cycles = int(sys.argv[2])
+    new_name = img_name.split('/')[-1].split('.')[0]
     
-
     if not os.path.isfile(img_name):
         print('Please input a regular path to a file.')
         return -1
@@ -297,7 +299,7 @@ def main():
 
     #image  
     img_orig = image_to_array(img_name)
-    arr_to_image(img_orig, "input_image.png")
+    arr_to_image(img_orig, "3_input_image.png")
     img_work= image_to_array(img_name)
    
     if len(img_orig)>100 or len(img_orig[0])>100:
@@ -305,7 +307,7 @@ def main():
         print("For testing smaller than 100x100 is good\n")
     print("Energy input image:", calculate_energy(img_orig, img_work))
     
-    swap_minimization(img_orig, img_work, cycles) 
+    swap_minimization(img_orig, img_work, cycles, new_name) 
     
     return 0 
 
