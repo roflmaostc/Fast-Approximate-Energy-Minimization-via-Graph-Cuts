@@ -8,12 +8,11 @@ import time
 import sys 
 import os.path
 from random import shuffle
+from scipy.misc import toimage
 
 
 
 def opencv_denoise():
-    import numpy as np
-    import cv2
     from matplotlib import pyplot as plt
     
     img = cv2.imread('../testimages/noisy_80.png')
@@ -42,7 +41,6 @@ def image_to_array(img):
 
 def arr_to_image(a, fname):
     '''Saves image arr as image'''
-    from scipy.misc import toimage
     #pillow does not work properly. Don't know why
     # from PIL import Image
     # import matplotlib.pyplot as plt
@@ -144,13 +142,13 @@ def minimum_cut(graph, map, revmap):
 def V_p_q(label1, label2):
     '''Definition of the potential'''
     return abs(label1-label2)
-    # return abs(label1-label2)
+    # return min(10,abs(label1-label2))
     
     
 def D_p(label, graph, x, y):
     '''Returns the quadratic difference between label and real intensity of pixel'''
     return (abs(label**2-graph[y][x]**2))**0.5
-    # return (abs(label-graph[y][x]))**2
+    # return (label-graph[y][x])**2
 
 
 def give_neighbours(image, x, y):
@@ -273,6 +271,7 @@ def swap_minimization(img_orig, img_work, cycles, output_name):
                 # print(i,j)
                 #computing intensive swapping and graph cutting part
                 img_work, dt = alpha_beta_swap(i,j, img_orig, img_work, True)       
+                # print(calculate_energy(img_orig, img_work)) 
                 T += dt
         #user output and interims result image
         print("Energy after " + str(u+1) + "/" + str(cycles) + " cylces:", calculate_energy(img_orig, img_work)) 
@@ -299,7 +298,7 @@ def main():
 
     #image  
     img_orig = image_to_array(img_name)
-    arr_to_image(img_orig, "3_input_image.png")
+    # arr_to_image(img_orig, "3_input_image.png")
     img_work= image_to_array(img_name)
    
     if len(img_orig)>100 or len(img_orig[0])>100:
