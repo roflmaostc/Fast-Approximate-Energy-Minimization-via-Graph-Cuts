@@ -1,2 +1,14 @@
 # Fast-Approximate-Energy-Minimization-via-Graph-Cuts
-Minimize Energy in Images.
+
+This code implements the swap-algorithm according to the paper "Fast Approximate Energy Minimization via Graph Cuts" from Boykov, Veksler and Zabih.
+
+For the Graph-Cut we use PyMaxflow (https://github.com/pmneila/PyMaxflow).
+
+Install requirments:
+    sudo pip install -r requirements.txt
+
+Executing is done by:
+    python minimization.py path/filename.png cycles
+
+Cycles can be an arbitrary number. Something below 10 ist quite good.
+Hint: Don't use images larger than 100x100 pixel, it will take a lot of time otherwise.
