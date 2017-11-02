@@ -1,7 +1,7 @@
 # Fast-Approximate-Energy-Minimization-via-Graph-Cuts
 
 This code implements the swap-algorithm according to the paper [Fast Approximate Energy Minimization via Graph Cuts](https://dl.acm.org/citation.cfm?id=505473) from Boykov, Veksler and Zabih.
-The code is writte in Python 3.
+The code is written in Python 3.
 For the Graph-Cut we use [PyMaxflow](https://github.com/pmneila/PyMaxflow). 
 Install requirements:
 
