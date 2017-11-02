@@ -41,39 +41,41 @@ def minimum_cut(graph, map):
 
 
 
-def generate_graph(size = 100, dropout=0.5, edge_dropout=0.5):
+def graph_cut_test(size = 100, dropout=0.5, edge_dropout=0.5):
     '''Graph which has the the same structure as our 2d graph'''
-
     #image without data 
     xlen = int((1-dropout)*size)
     ylen = int((1-dropout)*size) 
 
     #mapping image to graph
     map = {}
+    revmap = {}
     
-    graph = np.zeros((xlen*ylen+2,xlen*ylen+2), dtype=np.float)
+    graph_mf = mf.Graph[float](xlen*ylen)
+    #add nodes
+    nodes = graph_mf.add_nodes(xlen*ylen)
    
-    for i in range(1, len(graph)-1):
-        graph[0,i] = random.randint(0,200)
-        graph[i,0] = graph[0,i]
-        graph[i,-1] = random.randint(0,200)
-        graph[-1, i] = graph[i,-1]
-
-    graph_pos = 1
+    graph_pos = 0
     for x in range(0,xlen):
         for y in range(0, ylen):
-            map[(y,x)] = graph_pos
+            revmap[(y,x)] = graph_pos
+            map[graph_pos] = (y,x)
             graph_pos += 1
 
     #add edges with random dropout
-    for x in range(0, xlen):
-        for y in range(0, ylen):
-            for a,b in zip([1,0,-1,0],[0,1,0,-1]):
-                if (x+a<xlen and x+a>=0) and (y+b<ylen and y+b>=0)\
-                                      and random.random()>2*edge_dropout:
-                    graph[map[(y,x)], map[(y+b,x+a)]] = random.randint(0, 200)
-                    graph[map[(y+b,x+a)],map[(y,x)]] =  graph[map[(y,x)], map[(y+b,x+a)]]
-    return graph, map
+    for i in range(0,xlen*ylen):
+        y,x = map[i] 
+        for a,b in zip([1,0,-1,0],[0,1,0,-1]):
+            if (x+a<xlen and x+a>=0) and (y+b<ylen and y+b>=0):
+                graph_mf.add_edge(i,revmap[(y+b,x+a)], random.random(), random.random())
+    
+    #add all the terminal edges
+    for i in range(0,len(nodes)):
+        graph_mf.add_tedge(nodes[i], random.random(), random.random())
+
+    flow = graph_mf.maxflow()
+    return flow
+
 
 
 def simple_test():
@@ -90,9 +92,8 @@ def simple_test():
 def testing():
     print("pixels total \t time/s")
     for i in range(10,200, 10):
-        g, m   = generate_graph(i, 0, 0)
         start = time.time()
-        minimum_cut(g, m)
+        graph_cut_test(i,0,0)
         stop = time.time()
         print(i, "\t \t", stop-start)
 
