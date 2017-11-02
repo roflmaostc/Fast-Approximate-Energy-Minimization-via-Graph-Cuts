@@ -167,7 +167,7 @@ def create_graph(img_orig, image,  alpha, beta):
        alpha: alpha label
        beta: beta label
     '''
-    #map does the position in the adjaceny matrix map to (y,x) position in image
+    #map does the position in graph map to (y,x) position in image
     map = {}
     #other way 
     revmap = {}
@@ -244,7 +244,75 @@ def alpha_beta_swap(alpha, beta, img_orig, img_work, time_measure=False):
     if time_measure == True:
         return img_work, end-start
     else:
-        return img_work,0 
+        return img_work 
+
+
+def return_mapping_of_image(image, alpha, beta):
+    #map does the position in graph map to (y,x) position in image
+    map = {}
+    #other way 
+    revmap = {}
+    #loop over all pixels and add them to maps
+    map_parameter = 0
+    for y in range(len(image)):
+        for x in range(len(image[0])):
+            #extract pixel which have the wanted label
+            if image[y][x] == alpha or image[y][x] == beta:
+                map[map_parameter] = (y,x)
+                revmap[(y,x)] = map_parameter
+                map_parameter += 1
+    
+    return map, revmap
+
+
+def alpha_beta_swap_new(alpha, beta, img_orig, img_work):
+    ''' Performs alpha-beta-swap
+        img_orig: input image 
+        img_work: denoised image in each step
+        time_measure: flag if you want measure time'''
+
+    #extract position of alpha or beta pixels to mapping 
+    map, revmap = return_mapping_of_image(img_work, alpha, beta)
+    
+    #graph of maxflow 
+    graph_mf = mf.Graph[float](len(map) )
+    #add nodes
+    nodes = graph_mf.add_nodes(len(map))
+            
+    #add n-link edges
+    weight = V_p_q(alpha, beta)
+    for i in range(0,len(map)):
+        y,x = map[i]
+        #top, left, bottom, right
+        for a,b in zip([1,0,-1,0],[0,1,0,-1]):
+            if (y+b, x+a) in revmap:
+                graph_mf.add_edge(i,revmap[(y+b,x+a)], weight, 0)
+   
+    #add all the terminal edges
+    for i in range(0,len(map)):
+        y,x = map[i]
+        #find neighbours
+        neighbours = give_neighbours(img_work, x, y)
+        #consider only neighbours which are not having alpha or beta label
+        fil_neigh = list(filter(lambda i: i!=alpha and i!=beta, neighbours))
+        #calculation of weight
+        t_weight_alpha = sum([V_p_q(alpha,v) for v in fil_neigh]) + D_p(alpha, img_orig, x, y)
+        t_weight_beta = sum([V_p_q(beta,v) for v in fil_neigh]) + D_p(beta, img_orig, x, y)
+        graph_mf.add_tedge(nodes[i], t_weight_alpha, t_weight_beta)
+
+    #calculating flow
+    flow = graph_mf.maxflow()
+    res = [graph_mf.get_segment(nodes[i]) for i in range(0, len(nodes))]
+    
+    #depending on cut assign new label
+    for i in range(0, len(res)):
+        y, x = map[i] 
+        if res[i] == 1:
+            img_work[y][x] = alpha 
+        else:
+            img_work[y][x] = beta
+    
+    return img_work
 
 
 def swap_minimization(img_orig, img_work, cycles, output_name):
@@ -259,25 +327,27 @@ def swap_minimization(img_orig, img_work, cycles, output_name):
         for j in range(0, len(img_orig[0])):
             if img_orig[i][j] not in labels:
                 labels.append(img_orig[i][j])
-     
+    labels = np.array(labels) 
     T = 0
     #do iteration of all pairs a few times
     for u in range(0,cycles):
-        #shuffle labels
-        shuffle(labels)
+        # shuffle(labels)
         #iterate over all pairs of labels 
         for i in range(0, len(labels)-1):
             for j in range(i+1, len(labels)):
-                # print(i,j)
+                print(i,j)
                 #computing intensive swapping and graph cutting part
-                img_work, dt = alpha_beta_swap(i,j, img_orig, img_work, True)       
+                # if i==0 and j==2:
+                    # start = time.time()
+                # img_work  = alpha_beta_swap(labels[i],labels[j], img_orig, img_work)      
+                img_work  = alpha_beta_swap_new(labels[i],labels[j], img_orig, img_work)     
+                    # print(time.time()-start)
+                    # return 0
                 # print(calculate_energy(img_orig, img_work)) 
-                T += dt
         #user output and interims result image
         print("Energy after " + str(u+1) + "/" + str(cycles) + " cylces:", calculate_energy(img_orig, img_work)) 
         arr_to_image(img_work, "denoised_"+output_name+"_"+str(u+1)+"_cycle"+".png") 
     
-    # print(T)
     return img_work
 
 def main():
