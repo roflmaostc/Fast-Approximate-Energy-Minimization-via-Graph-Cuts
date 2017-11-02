@@ -335,7 +335,7 @@ def swap_minimization(img_orig, img_work, cycles, output_name):
         #iterate over all pairs of labels 
         for i in range(0, len(labels)-1):
             for j in range(i+1, len(labels)):
-                print(i,j)
+                # print(i,j)
                 #computing intensive swapping and graph cutting part
                 # if i==0 and j==2:
                     # start = time.time()

@@ -91,11 +91,14 @@ def simple_test():
 
 def testing():
     print("pixels total \t time/s")
-    for i in range(10,200, 10):
-        start = time.time()
-        graph_cut_test(i,0,0)
-        stop = time.time()
-        print(i, "\t \t", stop-start)
+    for i in range(100,2000, 100):
+        T = 0
+        for j in range(0,5):
+            start = time.time()
+            graph_cut_test(i,0,0)
+            stop = time.time()
+            T+=stop-start
+        print(i, "\t \t", T/5)
 
 
 testing()
