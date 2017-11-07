@@ -345,7 +345,8 @@ def swap_minimization(img_orig, img_work, cycles, output_name):
                     # return 0
                 # print(calculate_energy(img_orig, img_work)) 
         #user output and interims result image
-        print("Energy after " + str(u+1) + "/" + str(cycles) + " cylces:", calculate_energy(img_orig, img_work)) 
+        print(str(u+1) + "\t\t\t", calculate_energy(img_orig, img_work)) 
+        # print("Energy after " + str(u+1) + "/" + str(cycles) + " cylces:", calculate_energy(img_orig, img_work)) 
         arr_to_image(img_work, "denoised_"+output_name+"_"+str(u+1)+"_cycle"+".png") 
     
     return img_work
@@ -374,8 +375,8 @@ def main():
     if len(img_orig)>100 or len(img_orig[0])>100:
         print("WARNING: images larger than 100x100 take probably a few minutes (or hours) to minimize.")
         print("For testing smaller than 100x100 is good\n")
-    print("Energy input image:", calculate_energy(img_orig, img_work))
-    
+    print("#Energy input image:", calculate_energy(img_orig, img_work))
+    print("# nth cycle  \t\t energy")    
     swap_minimization(img_orig, img_work, cycles, new_name) 
     
     return 0 
