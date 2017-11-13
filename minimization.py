@@ -14,11 +14,8 @@ from scipy.misc import toimage
 
 def opencv_denoise():
     from matplotlib import pyplot as plt
-    
     img = cv2.imread('../testimages/noisy_80.png')
-    
     dst = cv2.fastNlMeansDenoisingColored(img,None,5,5,7,30)
-    
     plt.subplot(121),plt.imshow(img)
     plt.subplot(122),plt.imshow(dst)
     plt.show()
@@ -41,19 +38,6 @@ def image_to_array(img):
 
 def arr_to_image(a, fname):
     '''Saves image arr as image'''
-    #pillow does not work properly. Don't know why
-    # from PIL import Image
-    # import matplotlib.pyplot as plt
-    # arr = np.array(arr)
-    # plt.imshow(arr)
-    # plt.savefig('lol')
-    # print(arr)
-    # arr = np.random.random((100,100))
-    
-    # arr = np.asarray(dtype=np.dtype('uint8'), a=image_to_array("../test1noise.png"))
-    # img = Image.fromarray(arr, 'L').convert('1')
-    # img.show()
-    # img.save("asdsadasd.jpeg")
     
     toimage(a).save(fname) 
     return 0
@@ -61,38 +45,6 @@ def arr_to_image(a, fname):
 def give_test_1d_image():
     '''returns a 1x10 pixel image'''
     return np.array([[5,5,5,2,7,7,4,7]])
-    # return np.array([[5, 4, 6, 5, 5, 4, 4, 3, 4, 3]])#,\
-                     # [5, 5, 5, 5, 5, 2, 3, 2, 5, 5]])
-    # return np.array([[5,5,3],[5,7,5]])
-
-def graph_to_xdot(graph, map, revmap):
-    '''prints out graph in xdot format
-       graph: graph array
-       map: mapping from adjacency-matrix-pos to (x,y)
-       map: mapping from (x,y) to adjacency-matrix-pos'''
-    #define graph
-    out = "strict graph G{\nnode[color=white, style=filled];\n"
-    #define terminal-nodes
-    out += "\"alpha\"[color=yellow]\n "
-    #define all the other nodes(pixels)
-    for (y,x) in revmap:
-        out += "\"x="+ str(x) + ";y=" + str(y)+ "\"[color=red]\n "
-    out += "\"beta\"[color=green]\n "
-    #add all edges
-    for (y,x) in revmap:
-        for j in range(1,len(graph)-1):
-            if graph[revmap[(y,x)],j] != 0:
-                y2, x2 = map[j]
-                out +=  "\"x="+ str(x) + ";y=" + str(y) +"\"--" + "\"x="+ str(x2) + ";y=" + str(y2) + "\"[label=\""+str(graph[revmap[(y,x)]][j])+"\"]\n" 
-    #add all edges from pixels to terminals 
-    for i in range(1, len(graph)-1):
-        y, x = map[i]
-        out +=  "\"x="+ str(x) + ";y=" + str(y) +"\"--" + "\"alpha" + "\"[label=\""+str(graph[0][i])+"\"]\n"  
-        out +=  "\"x="+ str(x) + ";y=" + str(y) +"\"--" + "\"beta" + "\"[label=\""+str(graph[-1][i])+"\"]\n"  
-
-    out += "}"
-    return out
-
 
 
 def calculate_energy(img_orig, img_work):
@@ -111,8 +63,6 @@ def calculate_energy(img_orig, img_work):
             E_smooth += sum([V_p_q(v, img_work[i][j]) for v in ns])
 
     return E_data + E_smooth
-
-
 
 
 def minimum_cut(graph, map, revmap):
@@ -141,14 +91,14 @@ def minimum_cut(graph, map, revmap):
      
 def V_p_q(label1, label2):
     '''Definition of the potential'''
-    return abs(label1-label2)
+    return 45*abs(label1-label2)
     # return min(10,abs(label1-label2))
     
     
 def D_p(label, graph, x, y):
     '''Returns the quadratic difference between label and real intensity of pixel'''
-    return (abs(label**2-graph[y][x]**2))**0.5
-    # return (label-graph[y][x])**2
+    # return (abs(label**2-graph[y][x]**2))**0.5
+    return (label-graph[y][x])**2
 
 
 def give_neighbours(image, x, y):
@@ -161,59 +111,6 @@ def give_neighbours(image, x, y):
             ns.append(image[y+b][x+a])
     return ns 
 
-def create_graph(img_orig, image,  alpha, beta):
-    '''Method creates special graph using adjacency matrix as representation.
-       image: is the array in greyscale
-       alpha: alpha label
-       beta: beta label
-    '''
-    #map does the position in graph map to (y,x) position in image
-    map = {}
-    #other way 
-    revmap = {}
-    #loop over all pixels and add them to maps
-    map_parameter = 1
-    for i in range(len(image)):
-        for j in range(len(image[0])):
-            #extract pixel which have the wanted label
-            if image[i][j] == alpha or image[i][j] == beta:
-                map[map_parameter] = (i,j)
-                revmap[(i,j)] = map_parameter
-                map_parameter += 1
-
-
-    n = len(map)
-    #graph consists of all beta or alpha pixels
-    #additionally 1 alpha and 1 beta node
-    #alpha is at position 0, beta at n+1
-    graph = np.zeros((n+2, n+2), dtype=np.float) 
-    for i in range(1, n+1):
-        #from alpha to all pixels
-        y_img, x_img = map[i]
-        #find neighbours
-        neighbours = give_neighbours(image, x_img, y_img)
-        #consider only neighbours which are not having alpha or beta label
-        fil_neigh = list(filter(lambda i: i!=alpha and i!=beta, neighbours))
-        #calculation of weight
-        t_weight = sum([V_p_q(alpha,v) for v in fil_neigh])
-        #setting graph weight for alpha terminal edges
-        graph[i, 0] = D_p(alpha, img_orig, x_img, y_img)+t_weight
-        graph[0, i] = graph[i, 0]
-        #setting graph weight for beta terminal edges
-        t_weight = sum([V_p_q(beta,v) for v in fil_neigh])
-        graph[i, -1] = D_p(beta, img_orig, x_img, y_img)+t_weight
-        graph[-1, i] = graph[i,-1]
-
-    #neighbour have edges too
-    for key in map:
-        y,x = map[key]
-        #search top, down, left, right neighbour
-        for a,b in zip([1,0,-1,0],[0,1,0,-1]):
-            if (y+a,x+b) in revmap:
-                graph[key, revmap[(y+a,x+b)]] = V_p_q(alpha, beta) 
-                graph[revmap[(y+a,x+b)], key] = V_p_q(alpha, beta)
-        
-    return graph, map, revmap
 
 def alpha_beta_swap(alpha, beta, img_orig, img_work, time_measure=False):
     '''Performs alpha-beta-swap
@@ -335,19 +232,12 @@ def swap_minimization(img_orig, img_work, cycles, output_name):
         #iterate over all pairs of labels 
         for i in range(0, len(labels)-1):
             for j in range(i+1, len(labels)):
-                # print(i,j)
                 #computing intensive swapping and graph cutting part
-                # if i==0 and j==2:
-                    # start = time.time()
-                # img_work  = alpha_beta_swap(labels[i],labels[j], img_orig, img_work)      
                 img_work  = alpha_beta_swap_new(labels[i],labels[j], img_orig, img_work)     
-                    # print(time.time()-start)
-                    # return 0
-                # print(calculate_energy(img_orig, img_work)) 
         #user output and interims result image
         print(str(u+1) + "\t\t\t", calculate_energy(img_orig, img_work)) 
         # print("Energy after " + str(u+1) + "/" + str(cycles) + " cylces:", calculate_energy(img_orig, img_work)) 
-        arr_to_image(img_work, "denoised_"+output_name+"_"+str(u+1)+"_cycle"+".png") 
+        arr_to_image(img_work, "bad_denoised_"+output_name+"_"+str(u+1)+"_cycle"+".png") 
     
     return img_work
 
@@ -366,10 +256,8 @@ def main():
         print('Please input a regular path to a file.')
         return -1
 
-
     #image  
     img_orig = image_to_array(img_name)
-    # arr_to_image(img_orig, "3_input_image.png")
     img_work= image_to_array(img_name)
    
     if len(img_orig)>100 or len(img_orig[0])>100:
@@ -383,4 +271,3 @@ def main():
 
 
 main()
-# opencv_denoise()
