@@ -11,16 +11,6 @@ from random import shuffle
 from scipy.misc import toimage
 
 
-
-def opencv_denoise():
-    from matplotlib import pyplot as plt
-    img = cv2.imread('../testimages/noisy_80.png')
-    dst = cv2.fastNlMeansDenoisingColored(img,None,5,5,7,30)
-    plt.subplot(121),plt.imshow(img)
-    plt.subplot(122),plt.imshow(dst)
-    plt.show()
-
-
 def image_to_array(img):
     '''input: path to image
        output: array of grayscale
