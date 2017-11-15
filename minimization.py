@@ -21,7 +21,6 @@ def opencv_denoise():
     plt.show()
 
 
-
 def image_to_array(img):
     '''input: path to image
        output: array of grayscale
@@ -64,30 +63,6 @@ def calculate_energy(img_orig, img_work):
 
     return E_data + E_smooth
 
-
-def minimum_cut(graph, map, revmap):
-    '''This functions calculates the minimum cut using the PyMaxflow library
-       Input: graph, map and revmap
-       output: list sorted in order of map with new label'''
-
-    #first input is number of nodes, second is number of non-terminal edges
-    graph_mf = mf.Graph[float](len(map),len(map))
-    #add nodes
-    nodes = graph_mf.add_nodes(len(map))
-
-    #loop over adjacency matrix graph and add edges with weight
-    for i in range(1, len(graph)-1):
-        for j in range(i+1,len(graph)-1):
-            if graph[i][j] > 0:
-                graph_mf.add_edge(nodes[i-1],nodes[j-1], graph[i][j], graph[i][j])
-
-    #add all the terminal edges
-    for i in range(0,len(nodes)):
-        graph_mf.add_tedge(nodes[i], graph[0][i+1], graph[-1][i+1])
-   
-    #computation intensive part; calculation of minimum cut
-    flow = graph_mf.maxflow()
-    return [graph_mf.get_segment(nodes[i]) for i in range(0, len(nodes))]
      
 def V_p_q(label1, label2):
     '''Definition of the potential'''
@@ -110,38 +85,6 @@ def give_neighbours(image, x, y):
         if (x+a<len(image[0]) and x+a>=0) and (y+b<len(image) and y+b>=0):
             ns.append(image[y+b][x+a])
     return ns 
-
-
-def alpha_beta_swap(alpha, beta, img_orig, img_work, time_measure=False):
-    '''Performs alpha-beta-swap
-       img_orig: input image 
-       img_work: denoised image in each step
-       time_measure: flag if you want measure time'''
-    #create graph for this alpha, beta
-    graph, map, revmap = create_graph(img_orig, img_work, alpha, beta)
-    
-    # print(map)
-    if time_measure == True:
-        start = time.time() 
-        res = minimum_cut(graph, map, revmap)
-        end = time.time()
-        # print(end-start)
-    else:
-        res = minimum_cut(graph, map, revmap)
-    
-    #depending on cut assign new label
-    for i in range(0, len(res)):
-        y,x = map[i+1] 
-        if res[i] == 1:
-            img_work[y][x] = alpha 
-        else:
-            img_work[y][x] = beta
-
-    #time measurement
-    if time_measure == True:
-        return img_work, end-start
-    else:
-        return img_work 
 
 
 def return_mapping_of_image(image, alpha, beta):
