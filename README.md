@@ -1,6 +1,6 @@
 # Fast-Approximate-Energy-Minimization-via-Graph-Cuts
 
-This repository contains stuff about Fast Approximate Energy Minimization viA Graph Cuts.
+This repository contains stuff about Fast Approximate Energy Minimization via Graph Cuts.
 In the figures folder you will find many figures that you can use. They are all made witz tikz and LaTeX.
 The report_fcv.tex and paper_report.tex won't compile since a few figures and the template are missing.
 
