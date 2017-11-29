@@ -1,0 +1,15 @@
+WARNING: images larger than 100x100 take probably a few minutes (or hours) to minimize.
+For testing smaller than 100x100 is good
+
+#Energy input image: 4577470672
+# nth cycle  		 energy
+1			 585118741
+2			 563319906
+3			 562581170
+4			 562488530
+5			 562530706
+6			 562570061
+7			 562576939
+8			 562581329
+9			 562581502
+10			 562580228
