@@ -1,0 +1,65 @@
+\documentclass{standalone}
+
+\usepackage{tikz}
+
+
+\begin{document}
+
+\begin{tikzpicture}
+
+\def\radi{0.3}
+\def\squ{0.2}
+\def\d{1.5}
+\def\a{3.5}
+\def\b{-3.5}
+
+%ellipse large
+\draw[color=white, fill, opacity=0.9, inner color=red, outer color=red!40!] (-0.5*\d,0) ellipse (2.8cm and 0.8cm) node[below]{$P_\beta$};
+
+%ellipses small
+\draw[color=white, fill, opacity=0.7, inner color=blue, outer color=blue!30!] (-3*\d,0) circle (1.8*\radi);
+\draw[color=white, fill, opacity=0.75, inner color=blue, outer color=blue!30!] (2.5*\d,0) ellipse (1.22 and 0.75) node[below]{$P_\alpha$};
+
+%pixel inner
+\draw (-\d-\squ,0-\squ) rectangle node{...} (-\d+\squ,0+\squ);
+\draw (\d-\squ,0-\squ) rectangle node{w} (\d+\squ,0+\squ);
+
+%pixel middle
+\draw (-2*\d-\squ,0-\squ) rectangle node{q} (-2*\d+\squ,0+\squ);
+\draw (2*\d-\squ,0-\squ) rectangle node{y} (2*\d+\squ,0+\squ);
+
+%pixel outer
+\draw (-3*\d-\squ,0-\squ) rectangle node{p} (-3*\d+\squ,0+\squ);
+\draw (3*\d-\squ,0-\squ) rectangle node{z} (3*\d+\squ,0+\squ);
+
+%horizontal lines
+\draw(-3*\d+\squ,0) -- node[above]{$e_{p,q}$} (-2*\d-\squ,0);
+\draw(-2*\d+\squ,0) -- (-1*\d-\squ,0);
+\draw(-1*\d+\squ,0) -- (1*\d-\squ,0);
+%\draw(1*\d+\squ,0) -- (2*\d-\squ,0);
+\draw(2*\d+\squ,0) -- node[above]{$e_{r,s}$} (3*\d-\squ,0);
+
+%vertical lines top
+\draw(0,\a) to [bend right] node[above]{$t_p^\alpha$} (-3*\d,0+\squ);
+\draw(0,\a) to [bend right] node[above]{$t_q^\alpha$} (-2*\d,0+\squ);
+\draw(0,\a) to [bend right] (-1*\d,0+\squ);
+\draw(0,\a) to [bend left] node[above=0.2cm]{$t_w^\alpha$} (1*\d,0+\squ);
+\draw(0,\a) to [bend left] node[above]{$t_r^\alpha$} (2*\d,0+\squ);
+\draw(0,\a) to [bend left] node[above]{$t_s^\alpha$} (3*\d,0+\squ);
+
+%vertical lines bottom
+\draw(0,\b) to [bend left] node[below]{$t_p^\beta$} (-3*\d,0-\squ);
+\draw(0,\b) to [bend left] node[below=0.05cm]{$t_q^\beta$} (-2*\d,0-\squ);
+\draw(0,\b) to [bend left] (-1*\d,0-\squ);
+\draw(0,\b) to [bend right] node[below=0.15cm]{$t_w^\beta$} (1*\d,0-\squ);
+\draw(0,\b) to [bend right] node[below]{$t_r^\beta$} (2*\d,0-\squ);
+\draw(0,\b) to [bend right] node[below]{$t_s^\beta$} (3*\d,0-\squ);
+
+%labels
+\draw[fill=black] (0,\a) circle (\radi) node{\textcolor{white}{$\alpha$}}; 
+\draw[fill=black] (0,\b) circle (\radi) node{\textcolor{white}{$\beta$}}; 
+
+
+\end{tikzpicture}
+
+\end{document}

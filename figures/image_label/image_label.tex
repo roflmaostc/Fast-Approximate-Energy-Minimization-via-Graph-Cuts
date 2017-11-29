@@ -1,0 +1,41 @@
+\documentclass{standalone}
+
+\usepackage{tikz}
+\usetikzlibrary{calc}
+
+\begin{document}
+
+\begin{tikzpicture}
+    \def\sqwi{0.6}
+   \begin{scope}[local bounding box = scope1] 
+        \draw (-0.65,-0.05) rectangle (1.55,2.15);
+        \draw[color=black] (0,0) rectangle node{5} (0-\sqwi,0+\sqwi);
+        \draw[color=green, text=black] (0.75,0) rectangle node{4} (0.75-\sqwi,0+\sqwi);
+        \draw[color=black] (1.5,0) rectangle node{5} (1.5-\sqwi,0+\sqwi);
+        \draw[color=green, text=black] (0,0.75) rectangle node{2} (0-\sqwi,0.75+\sqwi);
+        \draw[color=black] (0.75,0.75) rectangle node{1} (0.75-\sqwi,0.75+\sqwi);
+        \draw[color=green, text=black] (1.5,0.75) rectangle node{5} (1.5-\sqwi,0.75+\sqwi);
+        \draw[color=black] (0,1.5) rectangle node{6} (0-\sqwi,1.5+\sqwi);
+        \draw[color=green, text=black] (0.75,1.5) rectangle node{4} (0.75-\sqwi,1.5+\sqwi);
+        \draw[color=black] (1.5,1.5) rectangle node{5} (1.5-\sqwi,1.5+\sqwi);
+        \node at (0.5, -0.5) {labeling $f$};
+    \end{scope}
+    \begin{scope}[xshift = 5.5cm, yshift=4.5cm, transform canvas={scale=0.3}]
+       \fill[color=black] (1,0) --(3,0) --(3,1) --(4.5,-1) -- (3,-3) -- (3, -2) -- (1,-2);
+    \end{scope}
+    \begin{scope}[xshift = 4cm]
+        \draw (-0.65,-0.05) rectangle (1.55,2.15);
+        \draw[color=black] (0,0) rectangle node{5} (0-\sqwi,0+\sqwi);
+        \draw[color=black] (0.75,0) rectangle node{4} (0.75-\sqwi,0+\sqwi);
+        \draw[color=black] (1.5,0) rectangle node{5} (1.5-\sqwi,0+\sqwi);
+        \draw[color=black] (0,0.75) rectangle node{4} (0-\sqwi,0.75+\sqwi);
+        \draw[color=black] (0.75,0.75) rectangle node{4} (0.75-\sqwi,0.75+\sqwi);
+        \draw[color=black] (1.5,0.75) rectangle node{5} (1.5-\sqwi,0.75+\sqwi);
+        \draw[color=black] (0,1.5) rectangle node{5} (0-\sqwi,1.5+\sqwi);
+        \draw[color=black] (0.75,1.5) rectangle node{4} (0.75-\sqwi,1.5+\sqwi);
+        \draw[color=black] (1.5,1.5) rectangle node{5} (1.5-\sqwi,1.5+\sqwi);
+        \node at (0.5, -0.5) {labeling $\hat f$};
+    \end{scope}
+\end{tikzpicture}
+
+\end{document}
