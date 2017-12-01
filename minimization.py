@@ -56,14 +56,14 @@ def calculate_energy(img_orig, img_work):
      
 def V_p_q(label1, label2):
     '''Definition of the potential'''
-    return 45*abs(label1-label2)
-    # return min(10,abs(label1-label2))
+    # return 45*abs(label1-label2)
+    return min(10,abs(label1-label2))
     
     
 def D_p(label, graph, x, y):
     '''Returns the quadratic difference between label and real intensity of pixel'''
-    # return (abs(label**2-graph[y][x]**2))**0.5
-    return (label-graph[y][x])**2
+    return (abs(label**2-graph[y][x]**2))**0.5  #best working D_p
+    # return (label-graph[y][x])**2
 
 
 def give_neighbours(image, x, y):
@@ -150,14 +150,17 @@ def swap_minimization(img_orig, img_work, cycles, output_name):
        img_orig: is original input image
        img_work: optimized image
        cycles: how often to iterate over all labels'''
-
+    import time
     #find all labels of image
+    start = time.time()
     labels = []
     for i in range(0, len(img_orig)):
         for j in range(0, len(img_orig[0])):
             if img_orig[i][j] not in labels:
                 labels.append(img_orig[i][j])
     labels = np.array(labels) 
+    stop = time.time()
+    print(stop-start)
     T = 0
     #do iteration of all pairs a few times
     for u in range(0,cycles):
