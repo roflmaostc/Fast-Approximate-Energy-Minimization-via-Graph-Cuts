@@ -57,7 +57,8 @@ def calculate_energy(img_orig, img_work):
 def V_p_q(label1, label2):
     '''Definition of the potential'''
     # return 45*abs(label1-label2)
-    return min(10,abs(label1-label2))
+    return abs(label1-label2)
+    # return min(10,abs(label1-label2))
     
     
 def D_p(label, graph, x, y):
